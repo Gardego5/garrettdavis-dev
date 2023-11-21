@@ -1,0 +1,35 @@
+[package]
+name = "garrettdavis-dev"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+lambda = []
+
+[dependencies]
+ammonia = "3.3.0"
+anyhow = "1.0.75"
+axum = "0.6.20"
+axum-extra = { version = "0.8.0", features = ["cookie"] }
+chrono = { version = "0.4.31", features = ["serde"] }
+clap = { version = "4.4.8", features = ["derive", "env"] }
+dotenvy = { version = "0.15.7", features = ["clap"] }
+lambda_http = "0.8.3"
+maplit = "1.0.2"
+maud = { version = "0.25.0", features = ["axum"] }
+pulldown-cmark = { git = "https://github.com/raphlinus/pulldown-cmark", commit = "4f896d7" }
+serde = { version = "1.0.192", features = ["derive"] }
+serde_json = "1.0.108"
+serde_yaml = "0.9.27"
+tokio = { version = "1.34.0", features = ["full"] }
+tower = { version = "0.4.13", features = ["util"] }
+tower-http = { version = "0.4.4", features = [
+  "fs",
+  "compression-br",
+  "set-header",
+  "compression-full",
+  "compression-gzip",
+  "compression-deflate",
+] }

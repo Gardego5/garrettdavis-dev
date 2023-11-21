@@ -1,0 +1,202 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  a {
+    text-decoration: underline solid theme("colors.blue.400");
+    &:hover {
+      color: theme("colors.blue.400");
+    }
+  }
+
+  code {
+    font-weight: 400;
+    font-family: "IBM Plex Mono", mono;
+  }
+
+  html {
+    --scrollbar-track: linear-gradient(
+      to bottom,
+      theme("colors.zinc.950") 4rem,
+      theme("colors.zinc.900") 6rem
+    );
+    --scrollbar-thumb: theme("colors.slate.400");
+    scrollbar-color: var(--scrollbar-thumb);
+  }
+
+  ::selection {
+    background: color-mix(in srgb, #494d64, transparent 40%);
+  }
+
+  ::-webkit-scrollbar {
+    width: 3px;
+    margin-right: 1px;
+    background: var(--scrollbar-track);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border-radius: 100px;
+    background: var(--scrollbar-thumb);
+  }
+}
+
+@layer base {
+  :root {
+    /* Catppuccin Macchiato Colors */
+    --cmach-rosewater: #f4dbd6;
+    --cmach-flamingo: #f0c6c6;
+    --cmach-pink: #f5bde6;
+    --cmach-mauve: #c6a0f6;
+    --cmach-red: #ed8796;
+    --cmach-maroon: #ee99a0;
+    --cmach-peach: #f5a97f;
+    --cmach-yellow: #eed49f;
+    --cmach-green: #a6da95;
+    --cmach-teal: #8bd5ca;
+    --cmach-sky: #91d7e3;
+    --cmach-sapphire: #7dc4e4;
+    --cmach-blue: #8aadf4;
+    --cmach-lavender: #b7bdf8;
+    --cmach-text: #cad3f5;
+    --cmach-subtext1: #b8c0e0;
+    --cmach-subtext0: #a5adcb;
+    --cmach-overlay2: #939ab7;
+    --cmach-overlay1: #8087a2;
+    --cmach-overlay0: #6e738d;
+    --cmach-surface2: #5b6078;
+    --cmach-surface1: #494d64;
+    --cmach-surface0: #363a4f;
+    --cmach-base: #24273a;
+    --cmach-mantle: #1e2030;
+    --cmach-crust: #181926;
+  }
+
+  code[class*="language-"],
+  pre[class*="language-"] {
+  	color: var(--cmach-rosewater);
+  	background: none;
+  	font-size: 1em;
+  	text-align: left;
+  	white-space: pre;
+  	word-spacing: normal;
+  	word-break: normal;
+  	word-wrap: normal;
+  	line-height: 1.5;
+  
+  	-moz-tab-size: 4;
+  	-o-tab-size: 4;
+  	tab-size: 4;
+  
+  	-webkit-hyphens: none;
+  	-moz-hyphens: none;
+  	-ms-hyphens: none;
+  	hyphens: none;
+  }
+  
+  /* Code blocks */
+  pre[class*="language-"] {
+  	padding: 1em;
+  	margin: .5em 0;
+  	overflow: auto;
+    box-shadow: 0px 0px 0.5rem 0rem black inset;
+  }
+  
+  :not(pre) > code[class*="language-"],
+  pre[class*="language-"] {
+  	background: var(--cmach-crust);
+    /* border: 1px solid var(--cmach-overlay0); */
+    border-radius: 0.5rem;
+  }
+  
+  :not(pre)>code:not([class*="language-"]) {
+    padding: 0.15em 0.3em;
+    box-shadow: 0px 0px 0.5rem 0rem black inset;
+  	background: var(--cmach-crust);
+    border-radius: 0.5rem;
+  }
+  
+  pre[class*="language-"] ::selection {
+    background: color-mix(in srgb, var(--cmach-surface2), transparent 60%);
+  }
+  
+  /* Inline code */
+  :not(pre) > code[class*="language-"] {
+  	padding: .1em;
+  	border-radius: .3em;
+  	white-space: normal;
+  }
+  
+  .token.comment,
+  .token.block-comment,
+  .token.prolog,
+  .token.doctype,
+  .token.cdata {
+  	color: var(--cmach-overlay1);
+  }
+  
+  .token.punctuation {
+  	color: var(--cmach-overlay2);
+  }
+  
+  .token.tag,
+  .token.attr-name,
+  .token.namespace,
+  .token.deleted {
+  	color: var(--cmach-yellow);
+  }
+  
+  .token.function-name,
+  .token.boolean,
+  .token.function {
+  	color: var(--cmach-blue);
+  }
+  
+  .token.number {
+    color: var(--cmach-peach);
+  }
+  
+  .token.parameter {
+    color: var(--cmach-maroon);
+  }
+  
+  .token.property,
+  .token.class-name,
+  .token.constant,
+  .token.symbol {
+  	color: var(--cmach-yellow);
+  }
+  
+  .token.selector,
+  .token.important,
+  .token.atrule,
+  .token.keyword,
+  .token.builtin {
+  	color: var(--cmach-red);
+  }
+  
+  .token.string,
+  .token.char,
+  .token.attr-value,
+  .token.regex,
+  .token.variable {
+  	color: var(--cmach-green);
+  }
+  
+  .token.operator,
+  .token.entity,
+  .token.url {
+  	color: var(--cmach-sky);
+  }
+  
+  .token.important,
+  .token.bold {
+  	font-weight: bold;
+  }
+  .token.italic {
+  	font-style: italic;
+  }
+  .token.entity {
+  	cursor: help;
+  }
+}

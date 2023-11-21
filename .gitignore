@@ -1,0 +1,6 @@
+/target
+.env
+/dist
+/lambda
+dist.zip
+tailwindcss
