@@ -70,6 +70,14 @@ jobs:
             -i base.css \
             -m
 
+      - name: Save Build Cache
+        id: save-cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            tailwindcss
+            target/**/*
+
       - name: Terraform Init
         run: terraform init
         working-directory: infra
@@ -79,12 +87,4 @@ jobs:
       - name: Terraform Plan
         run: terraform plan -no-color
         working-directory: infra
-
-      - name: Save Build Cache
-        id: save-cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            tailwindcss
-            target/**/*
 
