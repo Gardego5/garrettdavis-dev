@@ -9,6 +9,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     permissions:
+      # id-token: write and contents: read are required for
+      # aws-actions/configure-aws-credentials
       id-token: write
       contents: read
     steps:
@@ -42,12 +44,11 @@ jobs:
 
       - name: Restore Build Cache
         id: restore-cache
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v3
         with:
+          key: ${{ runner.os }}-garrettdavis-dev
           path: |
             target/**/*
-      - name: LS
-        run: ls
 
       - name: Build Rust App
         run: |
@@ -58,6 +59,8 @@ jobs:
             --flatten garrettdavis-dev
           du -h lambda/bootstrap
           (
+            # bundle the binary, being careful to make the hash identical for
+            # identical builds.
             cd lambda &&
             find . -exec touch -d 1970-01-01T00:00:00 '{}' + &&
             find . -exec zip -q -D -X -9 --compression-method deflate ../dist.zip '{}' +
@@ -72,8 +75,9 @@ jobs:
 
       - name: Save Build Cache
         id: save-cache
-        uses: actions/cache@v3
+        uses: actions/cache/save@v3
         with:
+          key: ${{ steps.restore-cache.outputs.cache-primary-key }}
           path: |
             tailwindcss
             target/**/*
@@ -86,5 +90,8 @@ jobs:
         working-directory: infra
       - name: Terraform Plan
         run: terraform plan -no-color
+        working-directory: infra
+      - name: Terraform Apply
+        run: terraform apply -auto-approve -no-color
         working-directory: infra
 
