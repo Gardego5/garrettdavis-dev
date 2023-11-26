@@ -68,8 +68,9 @@ jobs:
 
       - name: Build Static Assets
         run: |
+          rm -rf dist
           ./tailwindcss \
-            -o dist/tailwindcss.css \
+            -o dist/css/tailwind.css \
             -i base.css \
             -m
 

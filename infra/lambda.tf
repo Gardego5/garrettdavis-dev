@@ -10,10 +10,20 @@ resource "aws_lambda_function" "function" {
   runtime       = "provided.al2"
   timeout       = 3
 
+  environment {
+    variables = {
+      ALERTS_TO_EMAIL = "me@garrettdavis.dev"
+    }
+  }
+
   depends_on = [
     aws_iam_role.lambda,
     aws_cloudwatch_log_group.lambda,
   ]
+
+  tags = {
+    NamePrefix = local.name_prefix
+  }
 }
 
 data "archive_file" "lambda" {
@@ -26,11 +36,19 @@ data "archive_file" "lambda" {
 resource "aws_cloudwatch_log_group" "lambda" {
   name              = "/aws/lambda/${local.name_prefix}"
   retention_in_days = 7
+
+  tags = {
+    NamePrefix = local.name_prefix
+  }
 }
 
 resource "aws_iam_role" "lambda" {
   name               = local.name_prefix
   assume_role_policy = data.aws_iam_policy_document.lambda_asume_role.json
+
+  tags = {
+    NamePrefix = local.name_prefix
+  }
 }
 
 data "aws_iam_policy_document" "lambda_asume_role" {

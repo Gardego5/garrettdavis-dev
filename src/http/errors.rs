@@ -1,3 +1,6 @@
+use axum::Json;
+use serde_json::json;
+
 use {
     crate::http::components::{
         layout::{header, margins},
@@ -92,5 +95,32 @@ pub fn internal_server_error<'a, E: std::fmt::Debug>(err: E) -> ErrorPage<'a> {
         message: html! {
             (format!("{:?}", err))
         },
+    }
+}
+
+pub enum AppError {
+    Error(anyhow::Error),
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        match self {
+            AppError::Error(e) => {
+                let status = StatusCode::INTERNAL_SERVER_ERROR;
+                (status, Json(json!({ "error": e.to_string() })))
+            }
+        }
+        .into_response()
+    }
+}
+
+impl<E> From<E> for AppError
+where
+    E: std::fmt::Debug + Into<anyhow::Error>,
+{
+    fn from(e: E) -> Self {
+        #[cfg(debug_assertions)]
+        println!("AppError {:?}", e);
+        AppError::Error(e.into())
     }
 }

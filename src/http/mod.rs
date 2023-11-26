@@ -7,9 +7,7 @@ pub mod context;
 pub mod errors;
 pub mod routes;
 
-pub async fn serve() -> anyhow::Result<()> {
-    let ctx = Ctx {};
-
+pub async fn serve(ctx: Ctx) -> anyhow::Result<()> {
     let app = router(ctx);
 
     lambda_http::run(app)

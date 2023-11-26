@@ -1,6 +1,9 @@
 resource "aws_s3_bucket" "static" {
   bucket = "${local.name_prefix}-static"
-  tags   = { Name = local.name_prefix }
+
+  tags = {
+    NamePrefix = local.name_prefix
+  }
 }
 
 resource "aws_s3_bucket_website_configuration" "static" {
@@ -82,6 +85,10 @@ resource "aws_s3_object" "static_files" {
   source       = "../static/${each.value}"
   etag         = filemd5("../static/${each.value}")
   content_type = local.content_types[split(".", each.value)[length(split(".", each.value)) - 1]]
+
+  tags = {
+    NamePrefix = local.name_prefix
+  }
 }
 
 resource "aws_s3_object" "built_static_files" {
@@ -91,4 +98,8 @@ resource "aws_s3_object" "built_static_files" {
   source       = "../dist/${each.value}"
   etag         = filemd5("../dist/${each.value}")
   content_type = local.content_types[split(".", each.value)[length(split(".", each.value)) - 1]]
+
+  tags = {
+    NamePrefix = local.name_prefix
+  }
 }

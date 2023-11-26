@@ -4,9 +4,13 @@ use crate::http::{
         template::template,
     },
     context::ValidBody,
+    errors::AppError,
 };
+use aws_sdk_sesv2::types::{Body, Content, Destination, EmailContent, Message as EmailMessage};
+use axum::extract::State;
 use axum::response::IntoResponse;
 use axum_extra::extract::{cookie::Cookie, CookieJar};
+use maud::DOCTYPE;
 use pulldown_cmark::CowStr;
 use serde_json::json;
 use {
@@ -29,12 +33,38 @@ where
         .route("/", post(post_message))
 }
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 struct Message {
     pub first: String,
     pub last: String,
     pub email: String,
     pub message: String,
+}
+
+fn automated_email(message: &Message) -> Markup {
+    html! {
+        (DOCTYPE)
+        html lang="en" {
+            head {
+                meta http-equiv="Content-Type" content="text/html; charset=utf-8";
+                meta name="viewport" content="width=device-width";
+                title { "New message from contact form" }
+            }
+            body {
+                div id="email" style="width: 600px" {
+                    p { "You have a new message from the contact form on garrettdavis.dev!" }
+                    p { "Name: " (message.first) " " (message.last) }
+                    p {
+                        "Email: "
+                        a href={"mailto:" (message.email)} {
+                            (message.email)
+                        }
+                    }
+                    p { "Message: " (message.message) }
+                }
+            }
+        }
+    }
 }
 
 fn thanks_message(data: &Message) -> Markup {
@@ -45,14 +75,48 @@ fn thanks_message(data: &Message) -> Markup {
     }
 }
 
-async fn post_message(jar: CookieJar, Form(data): Form<Message>) -> impl IntoResponse {
-    (
+async fn post_message(
+    State(ctx): State<Ctx>,
+    jar: CookieJar,
+    Form(data): Form<Message>,
+) -> Result<impl IntoResponse, AppError> {
+    let subject = Content::builder()
+        .data("[garrettdavis.dev alert] - message")
+        .charset("UTF-8")
+        .build()
+        .expect("building subject_content");
+    let body = Content::builder()
+        .data(automated_email(&data))
+        .charset("UTF-8")
+        .build()
+        .expect("building body_content");
+
+    let msg = EmailMessage::builder()
+        .subject(subject)
+        .body(Body::builder().html(body).build())
+        .build();
+
+    let email_content = EmailContent::builder().simple(msg).build();
+
+    let dest = Destination::builder()
+        .to_addresses(&ctx.cfg.alerts_to_email)
+        .build();
+
+    ctx.ses
+        .send_email()
+        .from_email_address("contact-form@noreply.garrettdavis.dev")
+        .destination(dest)
+        .content(email_content)
+        .send()
+        .await?;
+
+    Ok((
         jar.add(Cookie::new(
             "ContactMessageForm",
             CowStr::from(json!(data).to_string()),
         )),
         thanks_message(&data),
-    )
+    ))
 }
 
 async fn contact(cookies: CookieJar) -> Markup {
