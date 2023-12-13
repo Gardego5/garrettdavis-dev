@@ -1,71 +1,30 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    flake-parts.url = "github:hercules-ci/flake-parts";
-    systems.url = "github:nix-systems/default";
-
-    # Dev tools
-    treefmt-nix.url = "github:numtide/treefmt-nix";
+    flake-utils.url = "github:numtide/flake-utils";
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "flake-utils";
+      };
+    };
   };
 
-  outputs = inputs:
-    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = import inputs.systems;
-      imports = [
-        inputs.treefmt-nix.flakeModule
-      ];
-      perSystem = { config, self', pkgs, lib, system, ... }:
+  outputs = { self, nixpkgs, flake-utils, rust-overlay, ... }:
+    flake-utils.lib.eachDefaultSystem
+      (system:
         let
-          cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
-          nonRustDeps = [
-            pkgs.libiconv
-          ];
-          rust-toolchain = pkgs.symlinkJoin {
-            name = "rust-toolchain";
-            paths = [ pkgs.rustc pkgs.cargo pkgs.cargo-watch pkgs.rust-analyzer pkgs.rustPlatform.rustcSrc ];
-          };
+          overlays = [ (import rust-overlay) ];
+          pkgs = import nixpkgs { inherit system overlays; };
+          rustToolchain = pkgs.pkgsBuildHost.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+          nativeBuildInputs = with pkgs; [ rustToolchain pkg-config cargo-lambda ];
+          buildInputs = with pkgs; [ openssl ];
         in
         {
-          # Rust package
-          packages.default = pkgs.rustPlatform.buildRustPackage {
-            inherit (cargoToml.package) name version;
-            src = ./.;
-            cargoLock.lockFile = ./Cargo.lock;
-            cargoLock.outputHashes = {
-              "pulldown-cmark-0.9.2" = "4f896d75dba1d051b807877749120725f206515f";
-            };
-          };
-
-          # Rust dev environment
           devShells.default = pkgs.mkShell {
-            inputsFrom = [
-              config.treefmt.build.devShell
-            ];
-            shellHook = ''
-              # For rust-analyzer 'hover' tooltips to work.
-              export RUST_SRC_PATH=${pkgs.rustPlatform.rustLibSrc}
-
-              echo
-              echo "🍎🍎 Run 'just <recipe>' to get started"
-              just
-            '';
-            buildInputs = nonRustDeps;
-            nativeBuildInputs = with pkgs; [
-              just
-              rust-toolchain
-            ];
-            RUST_BACKTRACE = 1;
+            inherit buildInputs nativeBuildInputs;
           };
-
-          # Add your auto-formatters here.
-          # cf. https://numtide.github.io/treefmt/
-          treefmt.config = {
-            projectRootFile = "flake.nix";
-            programs = {
-              nixpkgs-fmt.enable = true;
-              rustfmt.enable = true;
-            };
-          };
-        };
-    };
+        }
+      );
 }
