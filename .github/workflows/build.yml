@@ -24,16 +24,15 @@ jobs:
 
       - name: Install Nix
         uses: cachix/install-nix-action@v22
+      - name: Nix Shell
+        uses: rrbutani/use-nix-shell-action@v1
 
       - name: Generate CSS
-        uses: rrbutani/use-nix-shell-action@v1
         run: tailwindcss -o ./static/css/tailwind.css -i base.css -m
       - name: Build
         run: nix build
       - name: Terraform Validate
-        uses: rrbutani/use-nix-shell-action@v1
         run: nix shell -c terraform validate -chdir=infra -no-color
       - name: Terraform Apply
-        uses: rrbutani/use-nix-shell-action@v1
         run: nix shell -c terraform apply -chdir=infra -no-color -auto-approve
 
