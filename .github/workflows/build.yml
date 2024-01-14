@@ -38,12 +38,16 @@ jobs:
         run: tailwindcss -o ./static/css/tailwind.css -i base.css -m
       - name: Build
         run: nix build
+      - name: Terraform Init
+        run: |
+          cd infra
+          terraform init
       - name: Terraform Validate
         run: |
           cd infra
-          nix shell -c terraform validate
+          terraform validate
       - name: Terraform Apply
         run: |
           cd infra
-          nix shell -c terraform apply -auto-approve
+          terraform apply -auto-approve
 
