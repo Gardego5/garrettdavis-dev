@@ -34,7 +34,11 @@ jobs:
       - name: Build
         run: nix build
       - name: Terraform Validate
-        run: nix shell -c terraform validate -chdir=infra -no-color
+        run: |
+          cd infra
+          nix shell -c terraform validate
       - name: Terraform Apply
-        run: nix shell -c terraform apply -chdir=infra -no-color -auto-approve
+        run: |
+          cd infra
+          nix shell -c terraform apply -auto-approve
 
