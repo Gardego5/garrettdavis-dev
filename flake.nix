@@ -1,30 +1,61 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        flake-utils.follows = "flake-utils";
-      };
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "flake-utils";
     };
+    cargo2nix = {
+      url = "github:cargo2nix/cargo2nix/release-0.11.0";
+      inputs.rust-overlay.follows = "rust-overlay";
+    };
+    flake-utils.follows = "cargo2nix/flake-utils";
+    nixpkgs.follows = "cargo2nix/nixpkgs";
   };
 
-  outputs = { self, nixpkgs, flake-utils, rust-overlay, ... }:
-    flake-utils.lib.eachDefaultSystem
-      (system:
-        let
-          overlays = [ (import rust-overlay) ];
-          pkgs = import nixpkgs { inherit system overlays; };
-          rustToolchain = pkgs.pkgsBuildHost.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-          nativeBuildInputs = with pkgs; [ rustToolchain pkg-config cargo-lambda ];
-          buildInputs = with pkgs; [ openssl ];
-        in
-        {
-          devShells.default = pkgs.mkShell {
-            inherit buildInputs nativeBuildInputs;
-          };
-        }
-      );
+  outputs = { self, nixpkgs, flake-utils, cargo2nix, ... }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        rustVersion = "latest";
+        rustChannel = "nightly";
+        packageFun = import ./Cargo.nix;
+
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ cargo2nix.overlays.default ];
+          config.allowUnfreePredicate = pkg:
+            builtins.elem (pkgs.lib.getName pkg) [
+              "terraform"
+            ];
+        };
+        pkgsCross = import nixpkgs {
+          inherit system;
+          crossSystem.config = "aarch64-unknown-linux-musl";
+          overlays = [ cargo2nix.overlays.default ];
+        };
+        rustpkgs = pkgs.rustBuilder.makePackageSet {
+          inherit
+          rustVersion
+          rustChannel
+          packageFun;
+
+          extraRustComponents = [ "clippy" ];
+        };
+        rustpkgs-lambda = pkgsCross.rustBuilder.makePackageSet {
+          inherit
+            rustVersion
+            rustChannel
+            packageFun;
+
+          target = "aarch64-unknown-linux-musl";
+        };
+      in {
+        devShell = rustpkgs.workspaceShell {
+          packages = with pkgs; [ terraform just tailwindcss ];
+        };
+        packages = {
+          default = (rustpkgs-lambda.workspace.garrettdavis-dev { }).bin;
+        };
+      }
+    );
 }

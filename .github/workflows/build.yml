@@ -22,77 +22,17 @@ jobs:
           role-to-assume: arn:aws:iam::256777061266:role/gh-actions-role
           aws-region: us-west-2
 
-      - name: Install Terraform
-        uses: hashicorp/setup-terraform@v2
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-      - name: Install Zig toolchain
-        uses: korandoru/setup-zig@v1
-        with:
-          zig-version: 0.10.0
-      - name: Install Cargo Lambda
-        uses: jaxxstorm/action-install-gh-release@v1.9.0
-        with:
-          repo: cargo-lambda/cargo-lambda
-          tag: v0.14.0
-          platform: linux
-          arch: x86_64
-      - name: Install TailwindCSS
+      - name: Install Nix
+        uses: cachix/install-nix-action@v22
+      - name: Build
         run: |
-          curl -sL -o tailwindcss https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64
-          chmod +x tailwindcss
-
-      - name: Restore Build Cache
-        id: restore-cache
-        uses: actions/cache/restore@v3
-        with:
-          key: ${{ runner.os }}-garrettdavis-dev
-          path: |
-            target/**/*
-
-      - name: Build Rust App
-        run: |
-          cargo lambda build \
-            --release \
-            --arm64 \
-            --lambda-dir lambda \
-            --flatten garrettdavis-dev
-          du -h lambda/bootstrap
-          (
-            # bundle the binary, being careful to make the hash identical for
-            # identical builds.
-            cd lambda &&
-            find . -exec touch -d 1970-01-01T00:00:00 '{}' + &&
-            find . -exec zip -q -D -X -9 --compression-method deflate ../dist.zip '{}' +
-          )
-
-      - name: Build Static Assets
-        run: |
-          rm -rf dist
-          ./tailwindcss \
-            -o dist/css/tailwind.css \
+          nix build --out-link dist
+          tailwindcss \
+            -o ./static/css/tailwind.css \
             -i base.css \
             -m
-
-      - name: Save Build Cache
-        id: save-cache
-        uses: actions/cache/save@v3
-        with:
-          key: ${{ steps.restore-cache.outputs.cache-primary-key }}
-          path: |
-            tailwindcss
-            target/**/*
-
-      - name: Terraform Init
-        run: terraform init
-        working-directory: infra
       - name: Terraform Validate
-        run: terraform validate -no-color
-        working-directory: infra
-      - name: Terraform Plan
-        run: terraform plan -no-color
-        working-directory: infra
+        run: terraform validate -chdir=infra -no-color
       - name: Terraform Apply
-        run: terraform apply -auto-approve -no-color
-        working-directory: infra
+        run: terraform apply -chdir=infra -no-color -auto-approve
 

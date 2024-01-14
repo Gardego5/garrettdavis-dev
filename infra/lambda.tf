@@ -28,7 +28,7 @@ resource "aws_lambda_function" "function" {
 
 data "archive_file" "lambda" {
   type             = "zip"
-  source_dir       = "${path.module}/../lambda"
+  source_dir       = "${path.root}/../result-bin/bin/"
   output_file_mode = "0666"
   output_path      = "../dist.zip"
 }

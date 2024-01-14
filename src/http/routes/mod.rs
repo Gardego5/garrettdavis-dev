@@ -11,6 +11,7 @@ use super::{
 mod blog;
 mod contact;
 mod resume;
+//mod index;
 
 pub fn router<B: ValidBody>(ctx: Ctx) -> Router<(), B>
 where
