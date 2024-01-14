@@ -26,11 +26,7 @@ jobs:
         uses: cachix/install-nix-action@v22
 
       - name: Generate CSS
-        run: |
-          nix shell -c tailwindcss \
-            -o ./static/css/tailwind.css \
-            -i base.css \
-            -m
+        run: nix shell -c tailwindcss -o ./static/css/tailwind.css -i base.css -m
       - name: Build
         run: nix build
       - name: Terraform Validate
