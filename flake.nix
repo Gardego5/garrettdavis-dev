@@ -48,9 +48,14 @@
 
           target = "aarch64-unknown-linux-musl";
         };
+
+        packages = with pkgs; [ terraform tailwindcss ];
       in {
-        devShell = rustpkgs.workspaceShell {
-          packages = with pkgs; [ terraform just tailwindcss ];
+        devShells = {
+          default = rustpkgs.workspaceShell {
+            packages = packages ++ [ pkgs.just ];
+          };
+          cicd = pkgs.mkShell { inherit packages; };
         };
 
         packages.default = (rustpkgs-lambda.workspace.garrettdavis-dev { }).bin;

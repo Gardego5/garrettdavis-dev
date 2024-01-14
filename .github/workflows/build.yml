@@ -26,6 +26,8 @@ jobs:
         uses: cachix/install-nix-action@v22
       - name: Nix Shell
         uses: rrbutani/use-nix-shell-action@v1
+        with:
+          devShell: .#cicd
 
       - name: Generate CSS
         run: tailwindcss -o ./static/css/tailwind.css -i base.css -m
